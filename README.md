@@ -1,2 +1,0 @@
-# SimplePong
- Arkanoid Game
