@@ -1,4 +1,5 @@
 import pygame
+import random
 
 #window
 FPS = 60
@@ -58,12 +59,38 @@ class Circle(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((10,10))
-        self.image.fill(SKYBLUE)
+        self.image.fill(VIOLET)
         self.rect = self.image.get_rect()
         self.rect.center = (WIDTH//2, HEIGHT//2)
+        self.speedx = random.randint(-3,3)
+        if self.speedx == 0:
+            self.speedx = 2
+        self.speedy = random.randint(3,7)
 
     def update(self):
-        pass
+        if self.rect.right > WIDTH:
+            self.speedx = -self.speedx
+            
+
+        if self.rect.left < 0:
+            self.speedx = -self.speedx
+            
+
+        if self.rect.top < 0:
+            self.speedy = -self.speedy
+
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+
+class Block(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((43,43))
+        self.image.fill(DARKGREEN)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
 
 pygame.init()
 window = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -72,13 +99,32 @@ clock = pygame.time.Clock()
 
 #textures and design
 platImg = pygame.image.load('player.jpg').convert()
+mainbg = pygame.image.load('mainBg.jpg').convert()
+mainbg = pygame.transform.scale(mainbg,(WIDTH, HEIGHT))
+mainbg_rect = mainbg.get_rect()
 
 #objects
 player = Platform()
 circle = Circle()
 sprites = pygame.sprite.Group()
+circles = pygame.sprite.Group()
+blocks = pygame.sprite.Group()
+circles.add(circle)
 sprites.add(player)
 sprites.add(circle)
+
+levels = [
+    ['# # # # # # # # # # ',
+     '## # # ### # # #    ']
+]
+
+level = 0
+for i in range(20):
+    for j in range(len(levels[level])):
+        if levels[level][j][i] == '#':
+            block = Block(i*45, j*45)
+            sprites.add(block)
+            blocks.add(block)
 
 run = True
 while run:
@@ -86,11 +132,17 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        
-    window.fill(MEDIUMSLATEBLUE)
+
+    hits = pygame.sprite.spritecollide(player, circles, False)
+    if hits:
+        circle.speedy = -circle.speedy
+    if circle.rect.y > HEIGHT:
+        run = False
+
+    window.blit(mainbg, mainbg_rect)
     sprites.draw(window)
     sprites.update()
     pygame.display.flip()
 
 pygame.quit()
-#0.0.1 ALPHA
+#280322 ALPHA
